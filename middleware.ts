@@ -38,11 +38,11 @@ export async function middleware(req: NextRequest) {
   // ── Dashboard protection ─────────────────────────────────
 if (DASHBOARD_PATHS.some(p => pathname.startsWith(p))) {
     const token = req.cookies.get('xeno_school_token')?.value
-    console.log('token found:', !!token)
+
     if (!token) return NextResponse.redirect(new URL('/login', req.url))
 
     const session = await verifyToken(token)
-    console.log('session valid:', !!session)
+
     if (!session) return NextResponse.redirect(new URL('/login', req.url))
 
     return NextResponse.next()
