@@ -3,7 +3,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
-const STEPS = ['Account', 'School', 'Plan', 'Payment']
+const STEPS = ['Account', 'School', 'Plan', 'Confirm']
 
 export default function SignupPage() {
   const searchParams = useSearchParams()
@@ -11,6 +11,7 @@ export default function SignupPage() {
 
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const [form, setForm] = useState({
     adminName: '',
     email: '',
@@ -21,9 +22,9 @@ export default function SignupPage() {
   })
 
   const update = (k: string, v: string) => {
+    setError('')
     setForm(prev => {
       const next = { ...prev, [k]: v }
-      // Auto-generate subdomain from school name
       if (k === 'schoolName') {
         next.subdomain = v.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20)
       }
@@ -31,18 +32,27 @@ export default function SignupPage() {
     })
   }
 
-  const handleCheckout = async () => {
+  const handleSubmit = async () => {
     setLoading(true)
+    setError('')
     try {
-      const res = await fetch('/api/stripe/checkout', {
+      const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       })
       const data = await res.json()
-      if (data.url) window.location.href = data.url
-    } catch (err) {
-      console.error(err)
+
+      if (!res.ok) {
+        setError(data.error || 'Signup failed')
+        if (data.error?.toLowerCase().includes('subdomain')) setStep(1)
+        if (data.error?.toLowerCase().includes('email')) setStep(0)
+        return
+      }
+
+      window.location.href = '/dashboard/overview'
+    } catch {
+      setError('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -52,7 +62,6 @@ export default function SignupPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl border border-gray-200 w-full max-w-md p-8">
 
-        {/* Logo */}
         <Link href="/" className="block text-center text-xl font-bold text-xeno-900 mb-8">
           xeno<span className="text-xeno-600">Campus</span>
         </Link>
@@ -70,6 +79,10 @@ export default function SignupPage() {
             </div>
           ))}
         </div>
+
+        {error && (
+          <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl mb-4">{error}</div>
+        )}
 
         {/* Step 0 — Account */}
         {step === 0 && (
@@ -90,7 +103,7 @@ export default function SignupPage() {
               <input type="password" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-xeno-500"
                 placeholder="Min 8 characters" value={form.password} onChange={e => update('password', e.target.value)} />
             </div>
-            <button onClick={() => setStep(1)} disabled={!form.adminName || !form.email || !form.password}
+            <button onClick={() => setStep(1)} disabled={!form.adminName || !form.email || form.password.length < 8}
               className="w-full bg-xeno-600 text-white py-3 rounded-xl text-sm font-medium hover:bg-xeno-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
               Continue
             </button>
@@ -110,18 +123,19 @@ export default function SignupPage() {
               <label className="block text-sm text-gray-600 mb-1">Your ecosystem URL</label>
               <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-xeno-500">
                 <input className="flex-1 px-4 py-3 text-sm focus:outline-none"
-                  placeholder="greenfield" value={form.subdomain} onChange={e => update('subdomain', e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))} />
+                  placeholder="greenfield" value={form.subdomain}
+                  onChange={e => update('subdomain', e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20))} />
                 <span className="bg-gray-50 px-3 py-3 text-sm text-gray-400 border-l border-gray-200">.xenocampus.com</span>
               </div>
               {form.subdomain && (
-                <p className="text-xs text-xeno-600 mt-1">Your school will be at: {form.subdomain}.xenocampus.com</p>
+                <p className="text-xs text-xeno-600 mt-1">{form.subdomain}.xenocampus.com</p>
               )}
             </div>
             <div className="flex gap-3">
               <button onClick={() => setStep(0)} className="flex-1 border border-gray-200 text-gray-600 py-3 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">
                 Back
               </button>
-              <button onClick={() => setStep(2)} disabled={!form.schoolName || !form.subdomain}
+              <button onClick={() => setStep(2)} disabled={!form.schoolName || form.subdomain.length < 3}
                 className="flex-1 bg-xeno-600 text-white py-3 rounded-xl text-sm font-medium hover:bg-xeno-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 Continue
               </button>
@@ -164,31 +178,41 @@ export default function SignupPage() {
           </div>
         )}
 
-        {/* Step 3 — Payment */}
+        {/* Step 3 — Confirm */}
         {step === 3 && (
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900">Review & pay</h2>
-            <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-gray-500">School</span><span className="font-medium">{form.schoolName}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">URL</span><span className="font-medium text-xeno-600">{form.subdomain}.xenocampus.com</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Plan</span><span className="font-medium capitalize">{form.plan}</span></div>
-              <div className="flex justify-between border-t border-gray-200 pt-2 mt-2">
-                <span className="text-gray-500">Total</span>
-                <span className="font-bold text-gray-900">
-                  {form.plan === 'starter' ? '$150' : form.plan === 'growth' ? '$299' : '$499'}/mo
-                </span>
+            <h2 className="text-xl font-semibold text-gray-900">Confirm details</h2>
+            <div className="bg-gray-50 rounded-xl p-4 space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Name</span>
+                <span className="font-medium">{form.adminName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Email</span>
+                <span className="font-medium">{form.email}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">School</span>
+                <span className="font-medium">{form.schoolName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">URL</span>
+                <span className="font-medium text-xeno-600">{form.subdomain}.xenocampus.com</span>
+              </div>
+              <div className="flex justify-between border-t border-gray-200 pt-3">
+                <span className="text-gray-500">Plan</span>
+                <span className="font-bold capitalize">{form.plan}</span>
               </div>
             </div>
             <div className="flex gap-3">
               <button onClick={() => setStep(2)} className="flex-1 border border-gray-200 text-gray-600 py-3 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">
                 Back
               </button>
-              <button onClick={handleCheckout} disabled={loading}
+              <button onClick={handleSubmit} disabled={loading}
                 className="flex-1 bg-xeno-600 text-white py-3 rounded-xl text-sm font-medium hover:bg-xeno-700 transition-colors disabled:opacity-50">
-                {loading ? 'Redirecting...' : 'Pay with Stripe →'}
+                {loading ? 'Creating...' : 'Create ecosystem →'}
               </button>
             </div>
-            <p className="text-xs text-center text-gray-400">Secure payment via Stripe. Cancel anytime.</p>
           </div>
         )}
 
