@@ -23,7 +23,7 @@ export default function LoginPage() {
         setError(data.error || 'Login failed')
         return
       }
-      router.push('/overview')
+      router.push('/dashboard/overview')
     } catch {
       setError('Something went wrong')
     } finally {
