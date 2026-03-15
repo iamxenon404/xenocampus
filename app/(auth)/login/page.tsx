@@ -23,7 +23,8 @@ export default function LoginPage() {
         setError(data.error || 'Login failed')
         return
       }
-      router.push('/dashboard/overview')
+      console.log('redirecting...')
+window.location.replace('/dashboard/overview')
     } catch {
       setError('Something went wrong')
     } finally {

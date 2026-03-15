@@ -33,8 +33,10 @@ export function signToken(payload: object, expiresIn = '7d'): string {
 // Verify a JWT token
 export function verifyToken<T>(token: string): T | null {
   try {
+    console.log('secret:', process.env.JWT_SECRET)
     return jwt.verify(token, JWT_SECRET) as T
-  } catch {
+  } catch (err) {
+    console.log('JWT error:', err)
     return null
   }
 }
