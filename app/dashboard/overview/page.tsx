@@ -15,7 +15,7 @@ export default async function DashboardPage() {
   const token = cookieStore.get('xeno_school_token')?.value
   if (!token) redirect('/login')
 
-  const session = verifyToken<{ schoolId: string; subdomain: string }>(token)
+const session = await verifyToken<{ schoolId: string; subdomain: string }>(token)
   if (!session) redirect('/login')
 
   const school = await getSchool(session.schoolId)

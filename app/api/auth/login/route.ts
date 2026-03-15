@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
    
 
     // Sign JWT
-    const token = signToken({
+const token = await signToken({ 
       schoolId: school.id,
       subdomain: school.subdomain,
     })

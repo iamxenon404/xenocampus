@@ -5,7 +5,7 @@ const PUBLIC_PATHS = ['/', '/signup', '/login', '/pricing', '/features', '/api/a
 const ADMIN_PATHS = ['/admin']
 const DASHBOARD_PATHS = ['/dashboard']
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
   const hostname = req.headers.get('host') || ''
 
@@ -41,7 +41,7 @@ if (DASHBOARD_PATHS.some(p => pathname.startsWith(p))) {
     console.log('token found:', !!token)
     if (!token) return NextResponse.redirect(new URL('/login', req.url))
 
-    const session = verifyToken(token)
+    const session = await verifyToken(token)
     console.log('session valid:', !!session)
     if (!session) return NextResponse.redirect(new URL('/login', req.url))
 

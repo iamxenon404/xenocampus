@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Sign admin JWT
-    const token = signToken({
+const token = await signToken({ 
       adminId: admin.id,
       email: admin.email,
       role: 'superadmin',
