@@ -34,9 +34,7 @@ export async function POST(req: NextRequest) {
     if (school.status === 'cancelled') {
       return NextResponse.json({ error: 'Your subscription has been cancelled.' }, { status: 403 })
     }
-    if (school.status === 'pending' || school.status === 'provisioning') {
-      return NextResponse.json({ error: 'Your ecosystem is still being set up. Please wait a moment.' }, { status: 403 })
-    }
+   
 
     // Sign JWT
     const token = signToken({
