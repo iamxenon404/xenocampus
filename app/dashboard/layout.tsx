@@ -2,8 +2,9 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { verifyToken } from '@/lib/auth'
 import { query } from '@/lib/db'
-import DashboardSidebar from '@/components/dashboard/Sidebar'
+// import DashboardSidebar from '@/components/dashboard/Sidebar'
 import DashboardHeader from '@/components/dashboard/Header'
+import DashboardSidebar from './Sidebar'
 
 async function getSchool(schoolId: string) {
   const result = await query('SELECT * FROM schools WHERE id = $1', [schoolId])
