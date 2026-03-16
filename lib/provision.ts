@@ -13,7 +13,8 @@ export async function provisionSchool(schoolId: string) {
     await createSchoolDatabase(school.db_name)
 
     // 2. Run migrations on the new DB
-    await runMigrations(school.db_connection_string)
+await runMigrations(school.db_connection_string, school.subdomain)
+
 
     // 3. Create R2 storage folder (just a convention, R2 is flat)
     await createStorageFolder(school.subdomain)
