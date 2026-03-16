@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 
 const PUBLIC_PATHS = ['/', '/signup', '/login', '/pricing', '/features', '/api/auth/login', '/api/stripe/webhook', '/api/stripe/checkout']
-const ADMIN_PATHS = ['/admin']
+const ADMIN_PATHS = ['/admin/schools', '/admin/analytics', '/admin/settings']
 const DASHBOARD_PATHS = ['/dashboard']
 
 export async function middleware(req: NextRequest) {
@@ -29,7 +29,7 @@ if (ADMIN_PATHS.some(p => pathname.startsWith(p))) {
     const token = req.cookies.get('xeno_admin_token')?.value
     if (!token) return NextResponse.redirect(new URL('/admin/login', req.url))
 
-    const session = verifyToken(token)
+    const session = await verifyToken(token)
     if (!session) return NextResponse.redirect(new URL('/admin/login', req.url))
 
     return NextResponse.next()
