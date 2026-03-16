@@ -1,8 +1,9 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { verifyToken } from '@/lib/auth'
-import AdminSidebar from '@/components/admin/Sidebar'
+// import AdminSidebar from '@/components/admin/Sidebar'
 import AdminHeader from './components/Header'
+import AdminSidebar from './components/Sidebar'
 // import AdminHeader from '@/components/admin/Header'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
