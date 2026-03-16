@@ -22,7 +22,7 @@ export default function AdminLoginPage() {
         setError(data.error || 'Login failed')
         return
       }
-      router.push('/admin/schools')
+      window.location.href = '/admin/schools'
     } catch {
       setError('Something went wrong')
     } finally {

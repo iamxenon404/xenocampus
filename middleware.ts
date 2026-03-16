@@ -25,7 +25,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // ── Admin protection ────────────────────────────────────
-  if (ADMIN_PATHS.some(p => pathname.startsWith(p))) {
+if (ADMIN_PATHS.some(p => pathname.startsWith(p))) {
     const token = req.cookies.get('xeno_admin_token')?.value
     if (!token) return NextResponse.redirect(new URL('/admin/login', req.url))
 
