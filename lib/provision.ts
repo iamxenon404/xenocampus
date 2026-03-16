@@ -56,35 +56,26 @@ async function createSchoolDatabase(dbName: string) {
   }
 }
 
-async function runMigrations(connectionString: string) {
-  // Connect to the newly created school DB and run all migrations
-  const schoolPool = new Pool({
-    connectionString,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+async function runMigrations(connectionString: string, subdomain: string) {
+  const response = await fetch(`${process.env.DJANGO_BACKEND_URL}/api/provision/migrate/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      connection_string: connectionString,
+      subdomain,
+      provision_key: process.env.PROVISION_SECRET_KEY,
+    }),
   })
 
-  const client = await schoolPool.connect()
-  try {
-    // Run your Django migrations via a REST call to your Django backend
-    // OR run raw SQL schema here if you extract it from Django
-    // For now this is a placeholder — will connect to Django provisioning endpoint
-    const response = await fetch(`${process.env.DJANGO_BACKEND_URL}/api/provision/migrate/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Provision-Key': process.env.PROVISION_SECRET_KEY!,
-      },
-      body: JSON.stringify({ connection_string: connectionString }),
-    })
-
-    if (!response.ok) throw new Error('Migration failed')
-    console.log('Migrations completed')
-  } finally {
-    client.release()
-    await schoolPool.end()
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(`Migration failed: ${error.error}`)
   }
-}
 
+  console.log(`Migrations complete for ${subdomain}`)
+}
 async function createStorageFolder(subdomain: string) {
   // R2 is a flat bucket — "folders" are just key prefixes
   // We create a placeholder file to initialise the folder
