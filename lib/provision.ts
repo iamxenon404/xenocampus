@@ -2,28 +2,32 @@ import { Pool } from 'pg'
 import { query } from './db'
 
 // Called after Stripe payment succeeds
-// Creates the school's isolated DB and sets everything up
+// Creates a schema for the school inside Supabase and runs migrations
 export async function provisionSchool(schoolId: string) {
   const school = await getSchool(schoolId)
   if (!school) throw new Error('School not found')
 
+  const schemaName = generateSchemaName(school.subdomain)
+
   try {
-    // 1. Create the school's database
-    await createSchoolDatabase(school.db_name)
+    // 1. Create the school's schema inside Supabase
+    await createSchema(schemaName)
 
-    // 2. Run migrations on the new DB via Django provisioning endpoint
-    await runMigrations(school.db_connection_string, school.subdomain)
+    // 2. Run Django migrations targeting the new schema
+    await runMigrations(schemaName, school.subdomain)
 
-    // 3. Create R2 storage folder (just a convention, R2 is flat)
+    // 3. Create R2 storage folder
     await createStorageFolder(school.subdomain)
 
-    // 4. Mark school as active
+    // 4. Mark school as active + save schema name
     await query(
-      'UPDATE schools SET status = $1, provisioned_at = NOW() WHERE id = $2',
-      ['active', schoolId]
+      `UPDATE schools 
+       SET status = $1, provisioned_at = NOW(), db_schema = $2
+       WHERE id = $3`,
+      ['active', schemaName, schoolId]
     )
 
-    console.log(`School ${school.subdomain} provisioned successfully`)
+    console.log(`School ${school.subdomain} provisioned with schema: ${schemaName}`)
     return { success: true }
 
   } catch (error) {
@@ -36,30 +40,30 @@ export async function provisionSchool(schoolId: string) {
   }
 }
 
-async function createSchoolDatabase(dbName: string) {
-  const adminPool = new Pool({
+async function createSchema(schemaName: string) {
+  const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    ssl: { rejectUnauthorized: false },
   })
 
-  const client = await adminPool.connect()
+  const client = await pool.connect()
   try {
-    await client.query(`CREATE DATABASE ${dbName}`)
-    console.log(`Database ${dbName} created`)
+    await client.query(`CREATE SCHEMA IF NOT EXISTS ${schemaName}`)
+    console.log(`Schema ${schemaName} created`)
   } finally {
     client.release()
-    await adminPool.end()
+    await pool.end()
   }
 }
 
-async function runMigrations(connectionString: string, subdomain: string) {
+async function runMigrations(schemaName: string, subdomain: string) {
   const response = await fetch(`${process.env.DJANGO_BACKEND_URL}/api/provision/migrate/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      connection_string: connectionString,
+      schema_name: schemaName,
       subdomain,
       provision_key: process.env.PROVISION_SECRET_KEY,
     }),
@@ -70,12 +74,10 @@ async function runMigrations(connectionString: string, subdomain: string) {
     throw new Error(`Migration failed: ${error.error}`)
   }
 
-  console.log(`Migrations complete for ${subdomain}`)
+  console.log(`Migrations complete for schema: ${schemaName}`)
 }
 
 async function createStorageFolder(subdomain: string) {
-  // R2 is a flat bucket — folders are just key prefixes
-  // Full R2 integration added in Phase 3
   console.log(`Storage folder ready: ${subdomain}/`)
 }
 
@@ -84,16 +86,15 @@ async function getSchool(schoolId: string) {
   return result.rows[0] || null
 }
 
-// Generate a safe DB name from school subdomain
-export function generateDbName(subdomain: string): string {
+export function generateSchemaName(subdomain: string): string {
   const safe = subdomain.toLowerCase().replace(/[^a-z0-9]/g, '_')
   return `school_${safe}`
 }
 
-// Generate the DB connection string for a school
-export function generateConnectionString(dbName: string): string {
-  const base = process.env.DATABASE_URL!
-  const url = new URL(base)
-  url.pathname = `/${dbName}`
-  return url.toString()
+export function generateConnectionString(_dbName: string): string {
+  return process.env.DATABASE_URL!
+}
+
+export function generateDbName(subdomain: string): string {
+  return generateSchemaName(subdomain)
 }
