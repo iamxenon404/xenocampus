@@ -69,8 +69,15 @@ export async function POST(req: NextRequest) {
 
     const school = result.rows[0]
 
+    // ── Trigger provisioning in background (dev only) ────
+    // In production this will be triggered by Stripe webhook after payment
+    const { provisionSchool } = await import('@/lib/provision')
+    provisionSchool(school.id).catch(err => {
+      console.error('Background provisioning failed:', err)
+    })
+
     // ── Sign JWT and set cookie ──────────────────────────
-const token = await signToken({ 
+    const token = await signToken({
       schoolId: school.id,
       subdomain: school.subdomain,
     })
@@ -90,7 +97,7 @@ const token = await signToken({
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
       path: '/',
     })
 
