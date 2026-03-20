@@ -27,22 +27,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
     }
 
-    // Check school is active
+    // Check school status
     if (school.status === 'suspended') {
       return NextResponse.json({ error: 'Your account is suspended. Please update your billing.' }, { status: 403 })
     }
     if (school.status === 'cancelled') {
       return NextResponse.json({ error: 'Your subscription has been cancelled.' }, { status: 403 })
     }
-   
+    // Note: pending/provisioning allowed through — provisioning runs in background
 
     // Sign JWT
-const token = await signToken({ 
+    const token = await signToken({
       schoolId: school.id,
       subdomain: school.subdomain,
     })
 
-    // Set cookie
     const response = NextResponse.json({
       success: true,
       school: {
@@ -57,7 +56,7 @@ const token = await signToken({
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
       path: '/',
     })
 
