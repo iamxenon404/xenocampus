@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 
-const PUBLIC_PATHS = ['/', '/signup', '/login', '/pricing', '/features', '/api/auth/login', '/api/stripe/webhook', '/api/stripe/checkout']
+const PUBLIC_PATHS = ['/', '/signup', '/login', '/pricing', '/features', '/api/auth/login', '/api/stripe/webhook', '/api/stripe/checkout',  '/school']
 const ADMIN_PATHS = ['/admin/schools', '/admin/analytics', '/admin/settings']
 const DASHBOARD_PATHS = ['/dashboard']
 
