@@ -14,7 +14,7 @@ export async function provisionSchool(schoolId: string) {
     await createSchema(schemaName)
 
     // 2. Run Django migrations targeting the new schema
-    await runMigrations(schemaName, school.subdomain)
+    await runMigrations(schemaName, school.subdomain, school.admin_email)
 
     // 3. Create R2 storage folder
     await createStorageFolder(school.subdomain)
@@ -56,7 +56,7 @@ async function createSchema(schemaName: string) {
   }
 }
 
-async function runMigrations(schemaName: string, subdomain: string) {
+async function runMigrations(schemaName: string, subdomain: string, adminEmail: string) {
   const response = await fetch(`${process.env.DJANGO_BACKEND_URL}/api/provision/migrate/`, {
     method: 'POST',
     headers: {
@@ -66,6 +66,7 @@ async function runMigrations(schemaName: string, subdomain: string) {
       schema_name: schemaName,
       subdomain,
       provision_key: process.env.PROVISION_SECRET_KEY,
+      admin_email: adminEmail,
     }),
   })
 
@@ -76,7 +77,6 @@ async function runMigrations(schemaName: string, subdomain: string) {
 
   console.log(`Migrations complete for schema: ${schemaName}`)
 }
-
 async function createStorageFolder(subdomain: string) {
   console.log(`Storage folder ready: ${subdomain}/`)
 }
