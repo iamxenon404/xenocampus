@@ -74,7 +74,7 @@ useEffect(() => {
             </div>
           )}
           <h1 className="text-xl font-bold text-gray-900">{school?.name || 'School Ecosystem'}</h1>
-          <p className="text-sm text-gray-400 mt-1">Sign in to your account</p>
+          <p className="text-sm text-gray-400 mt-1">Sign in to your account </p>
         </div>
 
         {error && (
