@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { loginUser, getUser } from '@/lib/ecosystem-api'
+import Link from 'next/link'
 
 export default function EcosystemLoginPage() {
   const params = useParams()
@@ -111,6 +112,12 @@ useEffect(() => {
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </div>
+        <p className="text-center text-xs text-gray-400 mt-4">
+  Don't have an account?{' '}
+  <Link href={`/school/${subdomain}/register`} className="text-gray-700 font-semibold hover:underline">
+    Register
+  </Link>
+</p>
 
         <p className="text-center text-xs text-gray-400 mt-6">
           {school?.name} · Powered by xenoCampus
