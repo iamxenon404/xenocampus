@@ -53,8 +53,11 @@ export default function EcosystemLoginPage() {
   }
 
   // Get school branding from window
-  const school = typeof window !== 'undefined' ? (window as any).__SCHOOL__ : null
+const [school, setSchool] = useState<any>(null)
 
+useEffect(() => {
+  setSchool((window as any).__SCHOOL__ || null)
+}, [])
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl border border-gray-200 w-full max-w-md p-8">
