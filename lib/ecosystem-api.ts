@@ -8,7 +8,13 @@ function getSubdomain(): string {
   const host = window.location.hostname
   const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'xenocampus.com'
   const subdomain = host.replace(`.${appDomain}`, '')
-  return subdomain !== host ? subdomain : ''
+  
+  // In production — read from hostname
+  if (subdomain !== host) return subdomain
+  
+  // In dev (localhost) — read from URL path /school/[subdomain]/...
+  const pathMatch = window.location.pathname.match(/^\/school\/([^\/]+)/)
+  return pathMatch ? pathMatch[1] : ''
 }
 
 // Core fetch wrapper — adds auth + subdomain headers automatically
