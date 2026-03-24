@@ -1,8 +1,8 @@
 'use client'
 
-// const BACKEND_URL = process.env.NEXT_PUBLIC_DJANGO_BACKEND_URL || 'https://school-ecosystem-demo.onrender.com'
+const BACKEND_URL = process.env.NEXT_PUBLIC_DJANGO_BACKEND_URL || 'https://school-ecosystem-demo.onrender.com'
 // const BACKEND_URL = '/django-api'
-const BACKEND_URL = 'https://school-ecosystem-demo.onrender.com'
+// const BACKEND_URL = 'https://school-ecosystem-demo.onrender.com'
 
 // Get subdomain from window.location in browser
 function getSubdomain(): string {
