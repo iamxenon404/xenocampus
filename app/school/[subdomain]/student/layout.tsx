@@ -31,6 +31,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     router.push(`/school/${subdomain}/login`);
   };
 
+  
   return (
     <div className="flex min-h-screen bg-white dark:bg-[#020203] transition-colors duration-500">
       <StudentSidebar
