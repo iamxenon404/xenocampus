@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useEcoAuth } from "@/components/ecosystem/EcoAuthProvider";
-import TeacherSidebar from "@/components/ecosystem/teacher/TeacherSidebar";
+import TeacherSidebar from "./TeacherSidebar";
+// import TeacherSidebar from "@/components/ecosystem/teacher/TeacherSidebar";
 
 export default function TeacherLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
