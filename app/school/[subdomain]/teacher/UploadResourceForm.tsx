@@ -260,17 +260,3 @@ function FormField({ label, children }: { label: string; children: React.ReactNo
     </div>
   );
 }
-```
-
----
-
-Resources section done. Here's the updated progress:
-```
-teacher/resources/
-├── page.tsx              ✅ TeacherResourcesPage
-└── [id]/
-    └── page.tsx          ✅ ResourceDetail
-
-components/ecosystem/teacher/
-├── ResourceCard.tsx      ✅
-└── UploadResourceForm.tsx ✅
